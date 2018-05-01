@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".AppOperatingActivity">
+    <Button
+        android:text="进入应用"
+        android:textSize="20sp"
+        android:onClick="enterApplication"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:text="卸载应用"
+        android:textSize="20sp"
+        android:onClick="uninstallApplication"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:text="应用详情"
+        android:textSize="20sp"
+        android:onClick="applicationDetails"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:text="提取图标"
+        android:textSize="20sp"
+        android:onClick="saveIcon"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:text="提取APK"
+        android:textSize="20sp"
+        android:onClick="saveAPK"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:text="分享应用"
+        android:textSize="20sp"
+        android:onClick="shareApp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:text="权限信息"
+        android:textSize="20sp"
+        android:onClick="permissionInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+</LinearLayout>
