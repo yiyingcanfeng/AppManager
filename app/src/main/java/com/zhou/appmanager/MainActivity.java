@@ -1,16 +1,14 @@
 package com.zhou.appmanager;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.net.Uri;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -30,11 +28,16 @@ import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String alipay_person_qr="HTTPS://QR.ALIPAY.COM/FKX03040WLPHIWRHMSGXD6";
+
     private ListView listView;
     private ImageView gif_loading;
 
@@ -396,6 +399,27 @@ public class MainActivity extends AppCompatActivity {
                 }
                 listView.setAdapter(myAdapter);
                 break;
+            case R.id.donate:
+                String qrcode = "";
+                try {
+                    qrcode = URLEncoder.encode(alipay_person_qr, "utf-8");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                if (checkAliPayInstalled(this)) {
+                    final String alipayqr = "alipayqr://platformapi/startapp?saId=10000007&clientVersion=3.7.0.0718&qrcode=" + qrcode;
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(alipayqr + "%3F_s%3Dweb-other&_t=" + System.currentTimeMillis()));
+                    MainActivity.this.startActivity(intent);
+                }else {
+                    Toast.makeText(this, "你还未安装支付宝", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(alipay_person_qr.toLowerCase()));
+                    MainActivity.this.startActivity(intent);
+                }
+                break;
+            case R.id.exit:
+                finish();
+                System.exit(0);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -555,4 +579,15 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+
+
+
+    //检测是否安装了支付宝
+    public static boolean checkAliPayInstalled(Context context) {
+        Uri uri = Uri.parse("alipays://platformapi/startApp");
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        ComponentName componentName = intent.resolveActivity(context.getPackageManager());
+        return componentName != null;
+    }
+
 }
