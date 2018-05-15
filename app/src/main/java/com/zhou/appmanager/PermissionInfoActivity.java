@@ -3,19 +3,19 @@ package com.zhou.appmanager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
+
+import java.io.FileNotFoundException;
 
 public class PermissionInfoActivity extends AppCompatActivity {
 
@@ -31,7 +31,6 @@ public class PermissionInfoActivity extends AppCompatActivity {
         permissionInfos = appInfo.getPermissionInfos();
 
         setTitle(appInfo.getAppName()+"的权限");
-
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.item_permissioninfo, permissionInfos);
         permissionInfo_lv.setAdapter(adapter);
     }

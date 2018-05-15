@@ -2,20 +2,19 @@ package com.zhou.appmanager;
 
 import android.Manifest;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.StrictMode;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -29,6 +28,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class AppOperatingActivity extends AppCompatActivity {
 
@@ -40,6 +41,20 @@ public class AppOperatingActivity extends AppCompatActivity {
         Intent intent = getIntent();
         appInfo = intent.getParcelableExtra("appInfo");
         setTitle(appInfo.getAppName());
+
+        PackageManager pm = getPackageManager();
+        boolean installed;
+        try {
+            pm.getPackageInfo(appInfo.getPackageName(), PackageManager.GET_ACTIVITIES);
+            installed = true;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            installed = false;
+        }
+        if (!installed) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+        }
     }
 
     //进入应用
@@ -59,6 +74,7 @@ public class AppOperatingActivity extends AppCompatActivity {
         Uri uri = Uri.parse("package:" + appInfo.getPackageName());
         Intent intent = new Intent(Intent.ACTION_DELETE, uri);
         startActivity(intent);
+        finish();
     }
 
     //应用详情
@@ -182,25 +198,29 @@ public class AppOperatingActivity extends AppCompatActivity {
                     bos.close();
                     bis.close();
 
-                    Uri uri ;
-                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
-                        uri = FileProvider.getUriForFile(AppOperatingActivity.this, "com.zhou.appmanager.fileprovider", new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
-                    } else {
-                        uri= Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
-                    }
-
                     //StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
                     //StrictMode.setVmPolicy(builder.build());
                     //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     //    builder.detectFileUriExposure();
                     //}
 
+                    Uri uri ;
+                    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+                        uri = FileProvider.getUriForFile(AppOperatingActivity.this, "com.zhou.appmanager.fileprovider", new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
+                    } else {
+                        uri= Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
+                    }
+                    //uri= Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
+
+
                     Intent intent = new Intent(Intent.ACTION_SEND);
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
                     //intent.setData(uri);
                     //intent.setDataAndType(uri, "application/vnd.android.package-archive");
                     intent.setType("application/vnd.android.package-archive");//此处可发送多种文件
+                    //在Activity上下文之外启动Activity需要给Intent设置FLAG_ACTIVITY_NEW_TASK标志，不然会报异常。
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    //临时访问读权限  intent的接受者将被授予 INTENT 数据uri 或者 在ClipData 上的读权限。
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     startActivity(Intent.createChooser(intent, "分享文件"));
                 } catch (FileNotFoundException e) {
@@ -241,5 +261,12 @@ public class AppOperatingActivity extends AppCompatActivity {
         Intent intent = new Intent(AppOperatingActivity.this, PermissionInfoActivity.class);
         intent.putExtra("appInfo", appInfo);
         startActivity(intent);
+    }
+
+    public void gotoAPPMarket(View view) {
+        String str = "market://details?id=" + appInfo.getPackageName();
+        Intent localIntent = new Intent(Intent.ACTION_VIEW);
+        localIntent.setData(Uri.parse(str));
+        startActivity(localIntent);
     }
 }

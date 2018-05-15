@@ -48,4 +48,10 @@
         android:onClick="permissionInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+    <Button
+        android:text="在应用市场中查看"
+        android:textSize="20sp"
+        android:onClick="gotoAPPMarket"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 </LinearLayout>

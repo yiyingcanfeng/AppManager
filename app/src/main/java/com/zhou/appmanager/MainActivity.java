@@ -1,17 +1,19 @@
 package com.zhou.appmanager;
 
-import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
+import android.os.SystemClock;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.SearchView;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -26,13 +28,21 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.zhou.appmanager.MyAdapter.MyAdapter;
 import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
+import com.zhou.appmanager.util.PinyinTool;
+
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,12 +52,14 @@ public class MainActivity extends AppCompatActivity {
     private ImageView gif_loading;
 
     List<AppInfo> userAppInfos;
+    List<AppInfo> userAppInfosOld;
     List<AppInfo> systemAppInfos;
+    List<AppInfo> systemAppInfosOld;
     private MenuItem firstMenuItem;
     private int sortByName=1;
     private int sortByPermissions=1;
     private int sortBySize=1;
-
+    private SearchView mSearchView;
     private MyAdapter myAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,37 +72,8 @@ public class MainActivity extends AppCompatActivity {
                 .load(R.mipmap.loading)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(gif_loading);
-
-        //动态申请权限  WRITE_EXTERNAL_STORAGE
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            //如果应用之前请求过此权限但用户拒绝了请求，此方法将返回 true。
-            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                //这里可以写个对话框之类的项向用户解释为什么要申请权限，并在对话框的确认键后续再次申请权限
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-            } else {
-                //申请权限，字符串数组内是一个或多个要申请的权限，1是申请权限结果的返回参数，在onRequestPermissionsResult可以得知申请结果
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,}, 1);
-            }
-        }
-
-        //动态申请权限  READ_EXTERNAL_STORAGE
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            //如果应用之前请求过此权限但用户拒绝了请求，此方法将返回 true。
-            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                //这里可以写个对话框之类的项向用户解释为什么要申请权限，并在对话框的确认键后续再次申请权限
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-            } else {
-                //申请权限，字符串数组内是一个或多个要申请的权限，1是申请权限结果的返回参数，在onRequestPermissionsResult可以得知申请结果
-                ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,}, 1);
-            }
-        }
-
+        //申请权限
+        AppUtil.requestPermissions(this);
         new Thread(runnable).start();
     }
 
@@ -98,10 +81,12 @@ public class MainActivity extends AppCompatActivity {
     Runnable runnable=new Runnable() {
         @Override
         public void run() {
+            long datainitstart = SystemClock.currentThreadTimeMillis();
             //获取已安装的app信息
             systemAppInfos = AppUtil.getAppInfo(AppUtil.SYSTEM_APP,MainActivity.this);
             userAppInfos= AppUtil.getAppInfo(AppUtil.USER_APP,MainActivity.this);
-
+            userAppInfosOld = userAppInfos;
+            systemAppInfosOld = systemAppInfos;
             //根据名称排序
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
@@ -119,7 +104,9 @@ public class MainActivity extends AppCompatActivity {
                     return o1.getAppName().compareTo(o2.getAppName());
                 }
             });
-
+            long datainitend = SystemClock.currentThreadTimeMillis();
+            Log.i("datainittime", datainitend-datainitstart+"");
+            long uiinitstart = SystemClock.currentThreadTimeMillis();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -133,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         /**
-                         *
                          * @param parent listview
                          * @param view 当前行的item的view对象
                          * @param position 当前行的下标
@@ -145,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
                             intent.putExtra("appInfo",appInfo);
 
-                            //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
+                            //Android8.0之后，系统应用默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
                             if (drawable instanceof BitmapDrawable) {
                                 BitmapDrawable bd = (BitmapDrawable) drawable;
@@ -157,21 +143,10 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-
-                    listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                        @Override
-                        public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                            //删除当前行
-                            //删除当前行的数据
-                            userAppInfos.remove(position);
-                            //更新列表
-                            //listView.setAdapter(myAdapter);//显示列表，不会使用缓存的item的视图对象
-                            myAdapter.notifyDataSetChanged();//通知显示列表，使用所有缓存的item的视图对象
-                            return true;
-                        }
-                    });
                 }
             });
+            long uiinitend = SystemClock.currentThreadTimeMillis();
+            Log.i("uiinittime", uiinitend-uiinitstart+"");
         }
     };
 
@@ -185,6 +160,74 @@ public class MainActivity extends AppCompatActivity {
         menuInflater.inflate(R.menu.option_menu,menu);
 
         firstMenuItem=menu.findItem(R.id.showApp);
+
+        //标题栏搜索框功能实现
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+
+        mSearchView.setQueryHint("请输入要搜索的应用名称");//设置输入框提示语
+        mSearchView.setIconified(true);//设置searchView是否处于展开状态 false:展开
+        //mSearchView.setIconifiedByDefault(false);
+        //mSearchView.onActionViewExpanded();
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            //提交按钮的点击事件
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return true;
+            }
+
+            //当输入框内容改变的时候回调方法
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
+                try {
+                    if (firstMenuItem.getTitle().toString().equals("显示系统应用")) {
+                        if (!newText.equals("")) {
+                            userAppInfos = userAppInfosOld;
+                            List<AppInfo> userAppInfosNew = new ArrayList<>();
+                            for (int i = 0; i < userAppInfos.size(); i++) {
+                                AppInfo appInfo = userAppInfos.get(i);
+                                //支持通过拼音进行模糊搜索带中文名称的app PinyinTool.getPinyinString(appInfo.getAppName()).contains(newText)||
+                                if (appInfo.getAppName().toLowerCase().contains(newText)) {
+                                    userAppInfosNew.add(appInfo);
+                                }
+                            }
+                            userAppInfos = userAppInfosNew;
+                            //myAdapter.notifyDataSetInvalidated();
+                            myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
+                            listView.setAdapter(myAdapter);
+                        } else {//如果输入框内容为空，则显示全部app
+                            userAppInfos = userAppInfosOld;
+                            //myAdapter.notifyDataSetInvalidated();
+                            myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
+                            listView.setAdapter(myAdapter);
+                        }
+                    } else {
+                        if (!newText.equals("")) {
+                            systemAppInfos = systemAppInfosOld;
+                            List<AppInfo> systemAppInfosNew = new ArrayList<>();
+                            for (int i = 0; i < systemAppInfos.size(); i++) {
+                                AppInfo appInfo = systemAppInfos.get(i);
+                                //支持通过拼音进行模糊搜索带中文名称的app
+                                if (appInfo.getAppName().toLowerCase().contains(newText)) {
+                                    systemAppInfosNew.add(appInfo);
+                                }
+                            }
+                            systemAppInfos = systemAppInfosNew;
+                            myAdapter = new MyAdapter(systemAppInfos, MainActivity.this);
+                            listView.setAdapter(myAdapter);
+                        } else {//如果输入框内容为空，则显示全部app
+                            systemAppInfos = systemAppInfosOld;
+                            myAdapter = new MyAdapter(systemAppInfos, MainActivity.this);
+                            listView.setAdapter(myAdapter);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        });
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -193,7 +236,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.showApp:
+                //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (item.getTitle().toString().equals("显示系统应用")) {
+                    systemAppInfos = systemAppInfosOld;
                     myAdapter = new MyAdapter(systemAppInfos, MainActivity.this);
                     listView.setAdapter(myAdapter);
                     item.setTitle("显示用户应用");
@@ -219,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else {
+                    userAppInfos = userAppInfosOld;
                     myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
                     listView.setAdapter(myAdapter);
                     item.setTitle("显示系统应用");
@@ -250,6 +296,7 @@ public class MainActivity extends AppCompatActivity {
                 sortByName++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
+                    userAppInfos = userAppInfosOld;
                     myAdapter = new MyAdapter(userAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -272,6 +319,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
+                    systemAppInfos = systemAppInfosOld;
                     myAdapter = new MyAdapter(systemAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -302,6 +350,7 @@ public class MainActivity extends AppCompatActivity {
                 sortByPermissions++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
+                    userAppInfos = userAppInfosOld;
                     myAdapter = new MyAdapter(userAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -324,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
+                    systemAppInfos = systemAppInfosOld;
                     myAdapter = new MyAdapter(systemAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -579,8 +629,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-
-
 
     //检测是否安装了支付宝
     public static boolean checkAliPayInstalled(Context context) {
