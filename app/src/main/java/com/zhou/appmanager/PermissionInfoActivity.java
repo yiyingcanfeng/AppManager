@@ -15,8 +15,6 @@ import android.widget.Toast;
 import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
 
-import java.io.FileNotFoundException;
-
 public class PermissionInfoActivity extends AppCompatActivity {
 
     private ListView permissionInfo_lv;
