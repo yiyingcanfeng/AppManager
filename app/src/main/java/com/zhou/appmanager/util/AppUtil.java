@@ -11,7 +11,10 @@ import android.widget.Toast;
 
 import com.zhou.appmanager.model.AppInfo;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class AppUtil {
@@ -100,6 +103,171 @@ public class AppUtil {
                 ActivityCompat.requestPermissions(activity,
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,}, 1);
             }
+        }
+    }
+
+    //根据名称排序
+    public static void sortByName(int sortByName,List<AppInfo> userAppInfos,List<AppInfo> systemAppInfos){
+        if (sortByName % 2 == 0) { //变成升序排序(sortByName默认=1)
+            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o1.getAppName(), o2.getAppName());
+                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
+                    //return com.compare(o1.getAppName(), o2.getAppName());
+                    //return o1.getAppName().compareTo(o2.getAppName());
+                }
+            });
+            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o1.getAppName(), o2.getAppName());
+                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
+                    //return com.compare(o1.getAppName(), o2.getAppName());
+                    //return o1.getAppName().compareTo(o2.getAppName());
+                }
+            });
+        } else { //变成降序排序
+            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o2.getAppName(), o1.getAppName());
+                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
+                    //return com.compare(o2.getAppName(), o1.getAppName());
+                    //return o2.getAppName().compareTo(o1.getAppName());
+                }
+            });
+            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o2.getAppName(), o1.getAppName());
+                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
+                    //return com.compare(o2.getAppName(), o1.getAppName());
+                    //return o2.getAppName().compareTo(o1.getAppName());
+                }
+            });
+        }
+    }
+
+    //根据权限数量排序
+    public static void sortByPermissions(int sortByPermissions,List<AppInfo> userAppInfos,List<AppInfo> systemAppInfos) {
+        if (sortByPermissions % 2 == 0) {
+            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
+                    if (i > 0) {
+                        return 1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                }
+            });
+            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
+                    if (i > 0) {
+                        return 1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                }
+            });
+        } else {
+            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
+                    if (i > 0) {
+                        return -1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+            });
+            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
+                    if (i > 0) {
+                        return -1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+            });
+        }
+    }
+
+    //根据apk大小排序
+    public static void sortBySize(int sortBySize,List<AppInfo> userAppInfos,List<AppInfo> systemAppInfos) {
+        if (sortBySize % 2 == 0) {
+            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
+                    if (i > 0) {
+                        return 1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                }
+            });
+            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
+                    if (i > 0) {
+                        return 1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return -1;
+                    }
+                }
+            });
+        } else {
+            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
+                    if (i > 0) {
+                        return -1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+            });
+            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
+                @Override
+                public int compare(AppInfo o1, AppInfo o2) {
+                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
+                    if (i > 0) {
+                        return -1;
+                    } else if (i == 0) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+            });
         }
     }
 }

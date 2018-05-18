@@ -28,7 +28,6 @@ import com.zhou.appmanager.MyAdapter.AppInfoAdapter;
 import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             systemAppInfos = AppUtil.getAppInfo(AppUtil.SYSTEM_APP,MainActivity.this);
             userAppInfosOld = userAppInfos;
             systemAppInfosOld = systemAppInfos;
-            //根据名称排序
+            //默认按名称升序排序
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
@@ -187,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                             for (int i = 0; i < userAppInfos.size(); i++) {
                                 appInfo = userAppInfos.get(i);
                                 //支持通过拼音进行模糊搜索带中文名称的app PinyinTool.getPinyinString(appInfo.getAppName()).contains(newText)||
-                                if (appInfo.getAppName().toLowerCase().contains(newText)||appInfo.getAppNamePinyin().toLowerCase().contains(newText)) {
+                                if (appInfo.getAppName().toLowerCase().contains(newText) || appInfo.getAppNamePinyin().toLowerCase().contains(newText)) {
                                     userAppInfosNew.add(appInfo);
                                 }
 
@@ -295,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             case R.id.sortByName:
-                sortByName();
+                AppUtil.sortByName(sortByName,userAppInfos, systemAppInfos);
                 sortByName++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
@@ -349,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
                 listView.setAdapter(appInfoAdapter);
                 break;
             case R.id.sortByPermissions:
-                sortByPermissions();
+                AppUtil.sortByPermissions(sortByPermissions, userAppInfos, systemAppInfos);
                 sortByPermissions++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
@@ -402,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
                 listView.setAdapter(appInfoAdapter);
                 break;
             case R.id.sortBySize:
-                sortBySize();
+                AppUtil.sortBySize(sortBySize, userAppInfos, systemAppInfos);
                 sortBySize++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
@@ -475,170 +474,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    //根据名称排序
-    private void sortByName(){
-        if (sortByName % 2 == 0) {
-            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
-                    return com.compare(o1.getAppName(), o2.getAppName());
-                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
-                    //return com.compare(o1.getAppName(), o2.getAppName());
-                    //return o1.getAppName().compareTo(o2.getAppName());
-                }
-            });
-            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
-                    return com.compare(o1.getAppName(), o2.getAppName());
-                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
-                    //return com.compare(o1.getAppName(), o2.getAppName());
-                    //return o1.getAppName().compareTo(o2.getAppName());
-                }
-            });
-        } else {
-            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
-                    return com.compare(o2.getAppName(), o1.getAppName());
-                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
-                    //return com.compare(o2.getAppName(), o1.getAppName());
-                    //return o2.getAppName().compareTo(o1.getAppName());
-                }
-            });
-            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
-                    return com.compare(o2.getAppName(), o1.getAppName());
-                    //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
-                    //return com.compare(o2.getAppName(), o1.getAppName());
-                    //return o2.getAppName().compareTo(o1.getAppName());
-                }
-            });
-        }
-    }
-    //根据权限数量排序
-    private void sortByPermissions() {
-        if (sortByPermissions % 2 == 0) {
-            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
-                    if (i > 0) {
-                        return 1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                }
-            });
-            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
-                    if (i > 0) {
-                        return 1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                }
-            });
-        } else {
-            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
-                    if (i > 0) {
-                        return -1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                }
-            });
-            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = o1.getPermissionInfos().length - o2.getPermissionInfos().length;
-                    if (i > 0) {
-                        return -1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                }
-            });
-        }
-    }
-
-    //根据apk大小排序
-    private void sortBySize() {
-        if (sortBySize % 2 == 0) {
-            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
-                    if (i > 0) {
-                        return 1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                }
-            });
-            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
-                    if (i > 0) {
-                        return 1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return -1;
-                    }
-                }
-            });
-        } else {
-            Collections.sort(userAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
-                    if (i > 0) {
-                        return -1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                }
-            });
-            Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
-                @Override
-                public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)new File(o1.getApplicationInfo().sourceDir).length() - (int)new File(o2.getApplicationInfo().sourceDir).length();
-                    if (i > 0) {
-                        return -1;
-                    } else if (i == 0) {
-                        return 0;
-                    } else {
-                        return 1;
-                    }
-                }
-            });
-        }
     }
 
     //检测是否安装了支付宝
