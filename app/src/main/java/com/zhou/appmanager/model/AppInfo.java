@@ -9,6 +9,9 @@ import java.util.Arrays;
 
 public class AppInfo implements Parcelable{
     private String appName;
+    private String appNamePinyin;
+
+
     private String packageName;
     private Drawable appIcon;
     private String[] permissionInfos;
@@ -55,6 +58,7 @@ public class AppInfo implements Parcelable{
     public String toString() {
         return "AppInfo{" +
                 "appName='" + appName + '\'' +
+                ", appNamePinyin='" + appNamePinyin + '\'' +
                 ", packageName='" + packageName + '\'' +
                 ", appIcon=" + appIcon +
                 ", permissionInfos=" + Arrays.toString(permissionInfos) +
@@ -62,6 +66,13 @@ public class AppInfo implements Parcelable{
                 '}';
     }
 
+    public String getAppNamePinyin() {
+        return appNamePinyin;
+    }
+
+    public void setAppNamePinyin(String appNamePinyin) {
+        this.appNamePinyin = appNamePinyin;
+    }
     public String[] getPermissionInfos() {
         return permissionInfos;
     }

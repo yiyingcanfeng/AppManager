@@ -13,7 +13,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -25,24 +24,17 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.zhou.appmanager.MyAdapter.MyAdapter;
+import com.zhou.appmanager.MyAdapter.AppInfoAdapter;
 import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
-import com.zhou.appmanager.util.PinyinTool;
-
-import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private int sortByPermissions=1;
     private int sortBySize=1;
     private SearchView mSearchView;
-    private MyAdapter myAdapter;
+    private AppInfoAdapter appInfoAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,25 +75,29 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             long datainitstart = SystemClock.currentThreadTimeMillis();
             //获取已安装的app信息
-            systemAppInfos = AppUtil.getAppInfo(AppUtil.SYSTEM_APP,MainActivity.this);
             userAppInfos= AppUtil.getAppInfo(AppUtil.USER_APP,MainActivity.this);
+            systemAppInfos = AppUtil.getAppInfo(AppUtil.SYSTEM_APP,MainActivity.this);
             userAppInfosOld = userAppInfos;
             systemAppInfosOld = systemAppInfos;
             //根据名称排序
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o1.getAppName(), o2.getAppName());
                     //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
                     //return com.compare(o1.getAppName(), o2.getAppName());
-                    return o1.getAppName().compareTo(o2.getAppName());
+                    //return o1.getAppName().compareTo(o2.getAppName());
                 }
             });
             Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o1.getAppName(), o2.getAppName());
                     //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
                     //return com.compare(o1.getAppName(), o2.getAppName());
-                    return o1.getAppName().compareTo(o2.getAppName());
+                    //return o1.getAppName().compareTo(o2.getAppName());
                 }
             });
             long datainitend = SystemClock.currentThreadTimeMillis();
@@ -112,10 +108,10 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     listView = findViewById(R.id.lv_baseAdapter);
 
-                    myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
 
                     gif_loading.setVisibility(View.GONE);
-                    listView.setAdapter(myAdapter);
+                    listView.setAdapter(appInfoAdapter);
 
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -185,41 +181,48 @@ public class MainActivity extends AppCompatActivity {
                         if (!newText.equals("")) {
                             userAppInfos = userAppInfosOld;
                             List<AppInfo> userAppInfosNew = new ArrayList<>();
+
+                            long searchstart = System.currentTimeMillis();
+                            AppInfo appInfo;
                             for (int i = 0; i < userAppInfos.size(); i++) {
-                                AppInfo appInfo = userAppInfos.get(i);
+                                appInfo = userAppInfos.get(i);
                                 //支持通过拼音进行模糊搜索带中文名称的app PinyinTool.getPinyinString(appInfo.getAppName()).contains(newText)||
-                                if (appInfo.getAppName().toLowerCase().contains(newText)) {
+                                if (appInfo.getAppName().toLowerCase().contains(newText)||appInfo.getAppNamePinyin().toLowerCase().contains(newText)) {
                                     userAppInfosNew.add(appInfo);
                                 }
+
                             }
+                            long searchend = System.currentTimeMillis();
+                            Log.e("searchtimeused", searchend-searchstart+"");
                             userAppInfos = userAppInfosNew;
-                            //myAdapter.notifyDataSetInvalidated();
-                            myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
-                            listView.setAdapter(myAdapter);
+                            //appInfoAdapter.notifyDataSetInvalidated();
+                            appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
+                            listView.setAdapter(appInfoAdapter);
                         } else {//如果输入框内容为空，则显示全部app
                             userAppInfos = userAppInfosOld;
-                            //myAdapter.notifyDataSetInvalidated();
-                            myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
-                            listView.setAdapter(myAdapter);
+                            //appInfoAdapter.notifyDataSetInvalidated();
+                            appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
+                            listView.setAdapter(appInfoAdapter);
                         }
                     } else {
                         if (!newText.equals("")) {
                             systemAppInfos = systemAppInfosOld;
                             List<AppInfo> systemAppInfosNew = new ArrayList<>();
+                            AppInfo appInfo;
                             for (int i = 0; i < systemAppInfos.size(); i++) {
-                                AppInfo appInfo = systemAppInfos.get(i);
-                                //支持通过拼音进行模糊搜索带中文名称的app
-                                if (appInfo.getAppName().toLowerCase().contains(newText)) {
+                                appInfo = systemAppInfos.get(i);
+                                //支持通过拼音进行模糊搜索带中文名字的app PinyinTool.getPinyinString(appInfo.getAppName()).contains(newText)||
+                                if (appInfo.getAppName().toLowerCase().contains(newText)||appInfo.getAppNamePinyin().toLowerCase().contains(newText)) {
                                     systemAppInfosNew.add(appInfo);
                                 }
                             }
                             systemAppInfos = systemAppInfosNew;
-                            myAdapter = new MyAdapter(systemAppInfos, MainActivity.this);
-                            listView.setAdapter(myAdapter);
+                            appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
+                            listView.setAdapter(appInfoAdapter);
                         } else {//如果输入框内容为空，则显示全部app
                             systemAppInfos = systemAppInfosOld;
-                            myAdapter = new MyAdapter(systemAppInfos, MainActivity.this);
-                            listView.setAdapter(myAdapter);
+                            appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
+                            listView.setAdapter(appInfoAdapter);
                         }
                     }
                 } catch (Exception e) {
@@ -239,8 +242,8 @@ public class MainActivity extends AppCompatActivity {
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (item.getTitle().toString().equals("显示系统应用")) {
                     systemAppInfos = systemAppInfosOld;
-                    myAdapter = new MyAdapter(systemAppInfos, MainActivity.this);
-                    listView.setAdapter(myAdapter);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
+                    listView.setAdapter(appInfoAdapter);
                     item.setTitle("显示用户应用");
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -265,8 +268,8 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } else {
                     userAppInfos = userAppInfosOld;
-                    myAdapter = new MyAdapter(userAppInfos, MainActivity.this);
-                    listView.setAdapter(myAdapter);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
+                    listView.setAdapter(appInfoAdapter);
                     item.setTitle("显示系统应用");
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -297,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
                     userAppInfos = userAppInfosOld;
-                    myAdapter = new MyAdapter(userAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -320,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
                     systemAppInfos = systemAppInfosOld;
-                    myAdapter = new MyAdapter(systemAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -343,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
 
-                listView.setAdapter(myAdapter);
+                listView.setAdapter(appInfoAdapter);
                 break;
             case R.id.sortByPermissions:
                 sortByPermissions();
@@ -351,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
                     userAppInfos = userAppInfosOld;
-                    myAdapter = new MyAdapter(userAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -374,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
                     systemAppInfos = systemAppInfosOld;
-                    myAdapter = new MyAdapter(systemAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -396,14 +399,14 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
-                listView.setAdapter(myAdapter);
+                listView.setAdapter(appInfoAdapter);
                 break;
             case R.id.sortBySize:
                 sortBySize();
                 sortBySize++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
                 if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
-                    myAdapter = new MyAdapter(userAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -425,7 +428,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
-                    myAdapter = new MyAdapter(systemAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos,MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -447,7 +450,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 }
-                listView.setAdapter(myAdapter);
+                listView.setAdapter(appInfoAdapter);
                 break;
             case R.id.donate:
                 String qrcode = "";
@@ -480,34 +483,42 @@ public class MainActivity extends AppCompatActivity {
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o1.getAppName(), o2.getAppName());
                     //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
                     //return com.compare(o1.getAppName(), o2.getAppName());
-                    return o1.getAppName().compareTo(o2.getAppName());
+                    //return o1.getAppName().compareTo(o2.getAppName());
                 }
             });
             Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o1.getAppName(), o2.getAppName());
                     //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
                     //return com.compare(o1.getAppName(), o2.getAppName());
-                    return o1.getAppName().compareTo(o2.getAppName());
+                    //return o1.getAppName().compareTo(o2.getAppName());
                 }
             });
         } else {
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o2.getAppName(), o1.getAppName());
                     //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
-                    //return com.compare(o1.getAppName(), o2.getAppName());
-                    return o2.getAppName().compareTo(o1.getAppName());
+                    //return com.compare(o2.getAppName(), o1.getAppName());
+                    //return o2.getAppName().compareTo(o1.getAppName());
                 }
             });
             Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
+                    Comparator<Object> com = java.text.Collator.getInstance(java.util.Locale.CHINA);
+                    return com.compare(o2.getAppName(), o1.getAppName());
                     //Comparator<Object> com = Collator.getInstance(java.util.Locale.CHINA);
-                    //return com.compare(o1.getAppName(), o2.getAppName());
-                    return o2.getAppName().compareTo(o1.getAppName());
+                    //return com.compare(o2.getAppName(), o1.getAppName());
+                    //return o2.getAppName().compareTo(o1.getAppName());
                 }
             });
         }

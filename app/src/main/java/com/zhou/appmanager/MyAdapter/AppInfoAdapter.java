@@ -15,10 +15,10 @@ import java.io.File;
 import java.util.List;
 
 //自定义adapter
-public class MyAdapter extends BaseAdapter {
+public class AppInfoAdapter extends BaseAdapter {
     private List<AppInfo> appInfos;
     private Context context;
-    public MyAdapter(List<AppInfo> list, Context context) {
+    public AppInfoAdapter(List<AppInfo> list, Context context) {
         this.appInfos = list;
         this.context = context;
     }

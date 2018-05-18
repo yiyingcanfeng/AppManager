@@ -9,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.widget.Toast;
 
-import com.zhou.appmanager.MainActivity;
 import com.zhou.appmanager.model.AppInfo;
 
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ public class AppUtil {
             // 判断系统/非系统应用
             AppInfo appInfo = new AppInfo();
             appInfo.setAppName(packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString());
+            appInfo.setAppNamePinyin(PinyinTool.getPinyinString(packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString()));
             appInfo.setPackageName(packageInfo.packageName);
             appInfo.setAppIcon( packageInfo.applicationInfo.loadIcon(context.getPackageManager()));
             appInfo.setApplicationInfo(packageInfo.applicationInfo);
