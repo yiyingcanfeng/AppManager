@@ -36,7 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
+    //支付宝个人收款码
     private static final String alipay_person_qr="HTTPS://QR.ALIPAY.COM/FKX03040WLPHIWRHMSGXD6";
 
     private ListView listView;
@@ -458,6 +458,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
+                //检测是否安装了支付宝，如果是跳转到支付宝转账界面，否则跳转到支付宝下载网页
                 if (checkAliPayInstalled(this)) {
                     final String alipayqr = "alipayqr://platformapi/startapp?saId=10000007&clientVersion=3.7.0.0718&qrcode=" + qrcode;
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(alipayqr + "%3F_s%3Dweb-other&_t=" + System.currentTimeMillis()));
