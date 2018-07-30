@@ -1,5 +1,6 @@
 package com.zhou.appmanager;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -146,20 +148,32 @@ public class MainActivity extends AppCompatActivity {
             long uiinitend = SystemClock.currentThreadTimeMillis();
             Log.i("uiinittime", uiinitend - uiinitstart + "");
 
-            //获取应用的总大小、数据大小、缓存大小等数据，耗时长,在新的子线程中执行
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    AppUtil.getSize(MainActivity.this,systemAppInfos);
-                    AppUtil.getSize(MainActivity.this,userAppInfos);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            appInfoAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            }).start();
+            if (!AppUtil.hasUsageStatsPermission(MainActivity.this)) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "请授予本应用允许访问使用记录的权限", Toast.LENGTH_LONG).show();
+                    }
+                });
+                startActivityForResult(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY), 1);
+            } else {
+                //获取应用的总大小、数据大小、缓存大小等数据，耗时长,在新的子线程中执行
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+
+                        AppUtil.getSize(MainActivity.this,systemAppInfos);
+                        AppUtil.getSize(MainActivity.this,userAppInfos);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                appInfoAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                }).start();
+            }
         }
     };
 

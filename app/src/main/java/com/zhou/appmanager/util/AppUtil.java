@@ -77,40 +77,35 @@ public class AppUtil {
     }
 
     //获取大小
-    public static void getSize(Context context,List<AppInfo> appInfos) {
-        if (!hasUsageStatsPermission(context)) {
-            Toast.makeText(context, "请授予本应用允许访问使用记录的权限", Toast.LENGTH_LONG).show();
-            ((Activity) context).startActivityForResult(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY), 1);
-        } else {
-            try {
-                //仅在8.0及以上才执行
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    StorageStatsManager storageStatsManager = (StorageStatsManager) context.getSystemService(Context.STORAGE_STATS_SERVICE);
-                    StorageManager storageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
-                    List<StorageVolume> storageVolumes = storageManager.getStorageVolumes();
+    public static void getSize(Context context, List<AppInfo> appInfos) {
+        try {
+            //仅在8.0及以上才执行
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                StorageStatsManager storageStatsManager = (StorageStatsManager) context.getSystemService(Context.STORAGE_STATS_SERVICE);
+                StorageManager storageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+                List<StorageVolume> storageVolumes = storageManager.getStorageVolumes();
 
-                    for (int i = 0; i < appInfos.size(); i++) {
-                        AppInfo appInfo = appInfos.get(i);
-                        for (StorageVolume storageVolume : storageVolumes) {
-                            String uuidStr = storageVolume.getUuid();
-                            if (storageVolume.getDescription(context).equals("内部存储")) {
-                                UUID uuid = uuidStr == null ? StorageManager.UUID_DEFAULT : UUID.fromString(uuidStr);
-                                int uid = AppUtil.getAppUid(context, appInfo.getPackageName());
-                                StorageStats storageStats = storageStatsManager.queryStatsForUid(uuid, uid);
-                                long allSize = storageStats.getAppBytes() + storageStats.getDataBytes();
-                                appInfo.setAllSize(allSize);
-                                appInfo.setAppSize(storageStats.getAppBytes());
-                                appInfo.setDataSize(storageStats.getDataBytes());
-                                appInfo.setCacheSize(storageStats.getCacheBytes());
-                            }
+                for (int i = 0; i < appInfos.size(); i++) {
+                    AppInfo appInfo = appInfos.get(i);
+                    for (StorageVolume storageVolume : storageVolumes) {
+                        String uuidStr = storageVolume.getUuid();
+                        if (storageVolume.getDescription(context).equals("内部存储")) {
+                            UUID uuid = uuidStr == null ? StorageManager.UUID_DEFAULT : UUID.fromString(uuidStr);
+                            int uid = AppUtil.getAppUid(context, appInfo.getPackageName());
+                            StorageStats storageStats = storageStatsManager.queryStatsForUid(uuid, uid);
+                            long allSize = storageStats.getAppBytes() + storageStats.getDataBytes();
+                            appInfo.setAllSize(allSize);
+                            appInfo.setAppSize(storageStats.getAppBytes());
+                            appInfo.setDataSize(storageStats.getDataBytes());
+                            appInfo.setCacheSize(storageStats.getCacheBytes());
                         }
-                        appInfos.set(i,appInfo);
                     }
-
+                    appInfos.set(i, appInfo);
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -318,14 +313,14 @@ public class AppUtil {
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)o1.getAllSize() - (int)o2.getAllSize();
+                    int i = (int) o1.getAllSize() - (int) o2.getAllSize();
                     return Integer.compare(i, 0);
                 }
             });
             Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)o1.getAllSize() - (int)o2.getAllSize();
+                    int i = (int) o1.getAllSize() - (int) o2.getAllSize();
                     return Integer.compare(i, 0);
                 }
             });
@@ -333,14 +328,14 @@ public class AppUtil {
             Collections.sort(userAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)o1.getAllSize() - (int)o2.getAllSize();
+                    int i = (int) o1.getAllSize() - (int) o2.getAllSize();
                     return Integer.compare(0, i);
                 }
             });
             Collections.sort(systemAppInfos, new Comparator<AppInfo>() {
                 @Override
                 public int compare(AppInfo o1, AppInfo o2) {
-                    int i = (int)o1.getAllSize() - (int)o2.getAllSize();
+                    int i = (int) o1.getAllSize() - (int) o2.getAllSize();
                     return Integer.compare(0, i);
                 }
             });
