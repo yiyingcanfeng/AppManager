@@ -31,6 +31,7 @@ import java.io.IOException;
 public class AppOperatingActivity extends AppCompatActivity {
 
     private AppInfo appInfo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,7 +80,7 @@ public class AppOperatingActivity extends AppCompatActivity {
         String packageName = appInfo.getPackageName();
         Intent intent = new Intent();
         intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.fromParts("package", packageName,null ));
+        intent.setData(Uri.fromParts("package", packageName, null));
         startActivity(intent);
     }
 
@@ -92,27 +93,27 @@ public class AppOperatingActivity extends AppCompatActivity {
 
             Bitmap bm = getIntent().getParcelableExtra("appIcon");
             FileOutputStream fos;
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath()+"/AppManager/Icon/";
-            File file=new File(path+appInfo.getAppName()+".png");
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/AppManager/Icon/";
+            File file = new File(path + appInfo.getAppName() + ".png");
             //判断文件夹是否存在
             if (!new File(path).exists()) {
                 new File(path).mkdirs();
             }
-            Log.i("path", "saveIcon: "+path);
+            Log.i("path", "saveIcon: " + path);
             try {
-                fos=new FileOutputStream(file,false);
+                fos = new FileOutputStream(file, false);
                 //压缩bitmap写进outputStream 参数：输出格式  输出质量  目标OutputStream
                 //格式可以为jpg,png,jpg不能存储透明
                 bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
                 //关闭流
-                Toast.makeText(this, "文件已保存至:\n"+path+appInfo.getAppName()+".png", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "文件已保存至:\n" + path + appInfo.getAppName() + ".png", Toast.LENGTH_LONG).show();
                 fos.close();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                AppUtil.exceptionToast(AppOperatingActivity.this,e.getMessage());
+                AppUtil.exceptionToast(AppOperatingActivity.this, e.getMessage());
             } catch (IOException e) {
                 e.printStackTrace();
-                AppUtil.exceptionToast(AppOperatingActivity.this,e.getMessage());
+                AppUtil.exceptionToast(AppOperatingActivity.this, e.getMessage());
             }
 
         }
@@ -124,55 +125,55 @@ public class AppOperatingActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(AppOperatingActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(AppOperatingActivity.this, "没有存储权限", Toast.LENGTH_SHORT).show();
         } else {
-        final ProgressDialog dialog = ProgressDialog.show(this, "复制文件", "正在复制...");
+            final ProgressDialog dialog = ProgressDialog.show(this, "复制文件", "正在复制...");
 
-        //长时间的工作不能在主线程做，得启动分线程执行
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    final String outputPath = Environment.getExternalStorageDirectory().getAbsolutePath()+"/AppManager/APK/";
-                    //判断文件夹是否存在，不存在则创建
-                    if (!new File(outputPath).exists()) {
-                        new File(outputPath).mkdirs();
-                    }
-
-                    long startTime = System.currentTimeMillis();
-
-                    File file = new File(appInfo.getApplicationInfo().sourceDir);
-                    BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputPath+appInfo.getAppName()+".apk"));
-                    byte[] bytes=new byte[1024];
-                    int len;
-                    while ((len=bis.read(bytes))>0) {
-                        bos.write(bytes,0,len);
-                    }
-                    bos.close();
-                    bis.close();
-
-                    long endTime = System.currentTimeMillis();
-                    //耗时
-                    final double usedTime = (endTime - startTime)/1000.0;
-                    //速度
-                    final double speed = file.length() / usedTime/1048576.0;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {//在主线程执行
-                            Toast.makeText(AppOperatingActivity.this, "文件已保存至:\n"+outputPath+appInfo.getAppName()+".apk  \n用时:"+String.format("%.1f",usedTime)+"s  速度:"+String.format("%.1f",speed)+"MB/s", Toast.LENGTH_LONG).show();
+            //长时间的工作不能在主线程做，得启动分线程执行
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        final String outputPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/AppManager/APK/";
+                        //判断文件夹是否存在，不存在则创建
+                        if (!new File(outputPath).exists()) {
+                            new File(outputPath).mkdirs();
                         }
-                    });
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    AppUtil.exceptionToast(AppOperatingActivity.this,e.getMessage());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    AppUtil.exceptionToast(AppOperatingActivity.this,e.getMessage());
-                }
 
-                //移除dialog
-                dialog.dismiss();//方法在分线程执行，但内部使用Handler实现主线程移除dialog
-            }
-        }).start();
+                        long startTime = System.currentTimeMillis();
+
+                        File file = new File(appInfo.getApplicationInfo().sourceDir);
+                        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
+                        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputPath + appInfo.getAppName() + ".apk"));
+                        byte[] bytes = new byte[1024];
+                        int len;
+                        while ((len = bis.read(bytes)) > 0) {
+                            bos.write(bytes, 0, len);
+                        }
+                        bos.close();
+                        bis.close();
+
+                        long endTime = System.currentTimeMillis();
+                        //耗时
+                        final double usedTime = (endTime - startTime) / 1000.0;
+                        //速度
+                        final double speed = file.length() / usedTime / 1048576.0;
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {//在主线程执行
+                                Toast.makeText(AppOperatingActivity.this, "文件已保存至:\n" + outputPath + appInfo.getAppName() + ".apk  \n用时:" + String.format("%.1f", usedTime) + "s  速度:" + String.format("%.1f", speed) + "MB/s", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                        AppUtil.exceptionToast(AppOperatingActivity.this, e.getMessage());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        AppUtil.exceptionToast(AppOperatingActivity.this, e.getMessage());
+                    }
+
+                    //移除dialog
+                    dialog.dismiss();//方法在分线程执行，但内部使用Handler实现主线程移除dialog
+                }
+            }).start();
 
         }
     }
@@ -201,11 +202,11 @@ public class AppOperatingActivity extends AppCompatActivity {
                     //    builder.detectFileUriExposure();
                     //}
 
-                    Uri uri ;
+                    Uri uri;
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
                         uri = FileProvider.getUriForFile(AppOperatingActivity.this, "com.zhou.appmanager.fileprovider", new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
                     } else {
-                        uri= Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
+                        uri = Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
                     }
                     //uri= Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
 
@@ -222,10 +223,10 @@ public class AppOperatingActivity extends AppCompatActivity {
                     startActivity(Intent.createChooser(intent, "分享文件"));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
-                    AppUtil.exceptionToast(AppOperatingActivity.this,e.getMessage());
+                    AppUtil.exceptionToast(AppOperatingActivity.this, e.getMessage());
                 } catch (IOException e) {
                     e.printStackTrace();
-                    AppUtil.exceptionToast(AppOperatingActivity.this,e.getMessage());
+                    AppUtil.exceptionToast(AppOperatingActivity.this, e.getMessage());
                 }
             }
         }).start();
@@ -245,10 +246,11 @@ public class AppOperatingActivity extends AppCompatActivity {
             return;
         }
         for (File file : dir.listFiles()) {
-            if (file.isFile())
-                file.delete(); // 删除所有文件
-            else if (file.isDirectory())
-                deleteDirWihtFile(file); // 递规的方式删除文件夹
+            if (file.isFile()) {
+                file.delete(); // 删除所有文件}
+            } else if (file.isDirectory()) {
+                deleteDirWihtFile(file); // 递规的方式删除文件夹}
+            }
         }
         dir.delete();// 删除目录本身
     }

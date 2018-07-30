@@ -17,6 +17,13 @@ public class AppInfo implements Parcelable{
     private String[] permissionInfos;
     private ApplicationInfo applicationInfo;
 
+
+    private String apkSize;
+    private long allSize;
+    private long appSize;
+    private long dataSize;
+    private long cacheSize;
+
     public AppInfo() {
     }
 
@@ -63,7 +70,52 @@ public class AppInfo implements Parcelable{
                 ", appIcon=" + appIcon +
                 ", permissionInfos=" + Arrays.toString(permissionInfos) +
                 ", applicationInfo=" + applicationInfo +
+                ", apkSize='" + apkSize + '\'' +
+                ", allSize='" + allSize + '\'' +
+                ", appSize='" + appSize + '\'' +
+                ", dataSize='" + dataSize + '\'' +
+                ", cacheSize='" + cacheSize + '\'' +
                 '}';
+    }
+
+    public String getApkSize() {
+        return apkSize;
+    }
+
+    public void setApkSize(String apkSize) {
+        this.apkSize = apkSize;
+    }
+
+    public long getAllSize() {
+        return allSize;
+    }
+
+    public void setAllSize(long allSize) {
+        this.allSize = allSize;
+    }
+
+    public long getAppSize() {
+        return appSize;
+    }
+
+    public void setAppSize(long appSize) {
+        this.appSize = appSize;
+    }
+
+    public long getDataSize() {
+        return dataSize;
+    }
+
+    public void setDataSize(long dataSize) {
+        this.dataSize = dataSize;
+    }
+
+    public long getCacheSize() {
+        return cacheSize;
+    }
+
+    public void setCacheSize(long cacheSize) {
+        this.cacheSize = cacheSize;
     }
 
     public String getAppNamePinyin() {

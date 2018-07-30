@@ -18,12 +18,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.zhou.appmanager.MyAdapter.AppInfoAdapter;
 import com.zhou.appmanager.model.AppInfo;
 import com.zhou.appmanager.util.AppUtil;
@@ -37,45 +35,50 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     //支付宝个人收款码
-    private static final String alipay_person_qr="HTTPS://QR.ALIPAY.COM/FKX03040WLPHIWRHMSGXD6";
+    private static final String alipay_person_qr = "HTTPS://QR.ALIPAY.COM/FKX03040WLPHIWRHMSGXD6";
 
     private ListView listView;
-    private ImageView gif_loading;
+    private LinearLayout ll_loading;
 
     List<AppInfo> userAppInfos;
     List<AppInfo> userAppInfosOld;
     List<AppInfo> systemAppInfos;
     List<AppInfo> systemAppInfosOld;
     private MenuItem firstMenuItem;
-    private int sortByName=1;
-    private int sortByPermissions=1;
-    private int sortBySize=1;
     private SearchView mSearchView;
+
+    private int sortByName = 1;
+    private int sortByPermissions = 1;
+    private int sortByAPKSize = 1;
+    private int sortByALLSize = 1;
     private AppInfoAdapter appInfoAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        gif_loading = findViewById(R.id.gif_loading);
+        ll_loading = findViewById(R.id.ll_loading);
         //显示一个"正在加载"的gif动图，提示用户加载的时间可能较长，然后开启子线程
-        Glide.with(MainActivity.this)
-                .load(R.mipmap.loading)
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(gif_loading);
+        //Glide.with(MainActivity.this)
+        //        .load(R.mipmap.loading)
+        //        .diskCacheStrategy(DiskCacheStrategy.ALL)
+        //        .into(gif_loading);
+        ll_loading.setVisibility(View.VISIBLE);
+
         //申请权限
         AppUtil.requestPermissions(this);
         new Thread(runnable).start();
+
     }
 
     //在子线程中初始化数据并加载listview，因为用户手机中的应用越多加载时间就越长，所以不能在主线程中加载listview
-    Runnable runnable=new Runnable() {
+    Runnable runnable = new Runnable() {
         @Override
         public void run() {
             long datainitstart = SystemClock.currentThreadTimeMillis();
             //获取已安装的app信息
-            userAppInfos= AppUtil.getAppInfo(AppUtil.USER_APP,MainActivity.this);
-            systemAppInfos = AppUtil.getAppInfo(AppUtil.SYSTEM_APP,MainActivity.this);
+            userAppInfos = AppUtil.getAppInfo(AppUtil.USER_APP, MainActivity.this);
+            systemAppInfos = AppUtil.getAppInfo(AppUtil.SYSTEM_APP, MainActivity.this);
             userAppInfosOld = userAppInfos;
             systemAppInfosOld = systemAppInfos;
             //默认按名称升序排序
@@ -100,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             long datainitend = SystemClock.currentThreadTimeMillis();
-            Log.i("datainittime", datainitend-datainitstart+"");
+            Log.i("datainittime", datainitend - datainitstart + "");
             long uiinitstart = SystemClock.currentThreadTimeMillis();
             runOnUiThread(new Runnable() {
                 @Override
@@ -109,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
 
                     appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
 
-                    gif_loading.setVisibility(View.GONE);
+                    ll_loading.setVisibility(View.GONE);
                     listView.setAdapter(appInfoAdapter);
 
                     //给listView设置item点击监听
@@ -124,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = userAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统应用默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -141,20 +144,34 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             long uiinitend = SystemClock.currentThreadTimeMillis();
-            Log.i("uiinittime", uiinitend-uiinitstart+"");
+            Log.i("uiinittime", uiinitend - uiinitstart + "");
+
+            //获取应用的总大小、数据大小、缓存大小等数据，耗时长,在新的子线程中执行
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    AppUtil.getSize(MainActivity.this,systemAppInfos);
+                    AppUtil.getSize(MainActivity.this,userAppInfos);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            appInfoAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            }).start();
         }
     };
-
 
     //创建并初始化OptionsMenu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         //得到菜单加载器对象
-        MenuInflater menuInflater=getMenuInflater();
+        MenuInflater menuInflater = getMenuInflater();
         //加载菜单文件
-        menuInflater.inflate(R.menu.option_menu,menu);
+        menuInflater.inflate(R.menu.option_menu, menu);
 
-        firstMenuItem=menu.findItem(R.id.showApp);
+        firstMenuItem = menu.findItem(R.id.showApp);
 
         //标题栏搜索框功能实现
         MenuItem searchItem = menu.findItem(R.id.action_search);
@@ -192,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
                             }
                             long searchend = System.currentTimeMillis();
-                            Log.e("searchtimeused", searchend-searchstart+"");
+                            Log.e("searchtimeused", searchend - searchstart + "");
                             userAppInfos = userAppInfosNew;
                             //appInfoAdapter.notifyDataSetInvalidated();
                             appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
@@ -211,7 +228,7 @@ public class MainActivity extends AppCompatActivity {
                             for (int i = 0; i < systemAppInfos.size(); i++) {
                                 appInfo = systemAppInfos.get(i);
                                 //支持通过拼音进行模糊搜索带中文名字的app PinyinTool.getPinyinString(appInfo.getAppName()).contains(newText)||
-                                if (appInfo.getAppName().toLowerCase().contains(newText)||appInfo.getAppNamePinyin().toLowerCase().contains(newText)) {
+                                if (appInfo.getAppName().toLowerCase().contains(newText) || appInfo.getAppNamePinyin().toLowerCase().contains(newText)) {
                                     systemAppInfosNew.add(appInfo);
                                 }
                             }
@@ -250,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = systemAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -276,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = userAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -294,19 +311,19 @@ public class MainActivity extends AppCompatActivity {
 
                 break;
             case R.id.sortByName:
-                AppUtil.sortByName(sortByName,userAppInfos, systemAppInfos);
+                AppUtil.sortByName(sortByName, userAppInfos, systemAppInfos);
                 sortByName++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
-                if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
+                if (firstMenuItem.getTitle().toString().equals("显示系统应用")) {
                     userAppInfos = userAppInfosOld;
-                    appInfoAdapter = new AppInfoAdapter(userAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = userAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -322,14 +339,14 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
                     systemAppInfos = systemAppInfosOld;
-                    appInfoAdapter = new AppInfoAdapter(systemAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = systemAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -351,16 +368,16 @@ public class MainActivity extends AppCompatActivity {
                 AppUtil.sortByPermissions(sortByPermissions, userAppInfos, systemAppInfos);
                 sortByPermissions++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
-                if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
+                if (firstMenuItem.getTitle().toString().equals("显示系统应用")) {
                     userAppInfos = userAppInfosOld;
-                    appInfoAdapter = new AppInfoAdapter(userAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = userAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -376,14 +393,14 @@ public class MainActivity extends AppCompatActivity {
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
                     systemAppInfos = systemAppInfosOld;
-                    appInfoAdapter = new AppInfoAdapter(systemAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = systemAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -400,19 +417,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 listView.setAdapter(appInfoAdapter);
                 break;
-            case R.id.sortBySize:
-                AppUtil.sortBySize(sortBySize, userAppInfos, systemAppInfos);
-                sortBySize++;
+            case R.id.sortByALLSize:
+                AppUtil.sortByALLSize(sortByALLSize, userAppInfos, systemAppInfos);
+                sortByAPKSize++;
                 //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
-                if (firstMenuItem.getTitle().toString().equals("显示系统应用")){
-                    appInfoAdapter = new AppInfoAdapter(userAppInfos,MainActivity.this);
+                if (firstMenuItem.getTitle().toString().equals("显示系统应用")) {
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = userAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -427,14 +444,65 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
-                    appInfoAdapter = new AppInfoAdapter(systemAppInfos,MainActivity.this);
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
                     //给listView设置item点击监听
                     listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
                         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                             AppInfo appInfo = systemAppInfos.get(position);
                             Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
-                            intent.putExtra("appInfo",appInfo);
+                            intent.putExtra("appInfo", appInfo);
+
+                            //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
+                            Drawable drawable = appInfo.getAppIcon();
+                            if (drawable instanceof BitmapDrawable) {
+                                BitmapDrawable bd = (BitmapDrawable) drawable;
+                                Bitmap bm = bd.getBitmap();
+                                intent.putExtra("appIcon", bm);
+                                startActivity(intent);
+                            } else {
+                                startActivity(intent);
+                            }
+                        }
+                    });
+                }
+                listView.setAdapter(appInfoAdapter);
+                break;
+            case R.id.sortByAPKSize:
+                AppUtil.sortByAPKSize(sortByAPKSize, userAppInfos, systemAppInfos);
+                sortByAPKSize++;
+                //如果第一个菜单项是‘显示系统应用’，说明当前显示的是用户应用
+                if (firstMenuItem.getTitle().toString().equals("显示系统应用")) {
+                    appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
+                    //给listView设置item点击监听
+                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            AppInfo appInfo = userAppInfos.get(position);
+                            Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
+                            intent.putExtra("appInfo", appInfo);
+
+                            //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
+                            Drawable drawable = appInfo.getAppIcon();
+                            if (drawable instanceof BitmapDrawable) {
+                                BitmapDrawable bd = (BitmapDrawable) drawable;
+                                Bitmap bm = bd.getBitmap();
+                                intent.putExtra("appIcon", bm);
+                                startActivity(intent);
+                            } else {
+                                startActivity(intent);
+                            }
+                        }
+                    });
+                } else if (firstMenuItem.getTitle().toString().equals("显示用户应用")) {
+                    appInfoAdapter = new AppInfoAdapter(systemAppInfos, MainActivity.this);
+                    //给listView设置item点击监听
+                    listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            AppInfo appInfo = systemAppInfos.get(position);
+                            Intent intent = new Intent(MainActivity.this, AppOperatingActivity.class);
+                            intent.putExtra("appInfo", appInfo);
 
                             //Android8.0之后，系统默认图标实现变成AdaptiveIconDrawable,不能转型成BitmapDrawable
                             Drawable drawable = appInfo.getAppIcon();
@@ -463,7 +531,7 @@ public class MainActivity extends AppCompatActivity {
                     final String alipayqr = "alipayqr://platformapi/startapp?saId=10000007&clientVersion=3.7.0.0718&qrcode=" + qrcode;
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(alipayqr + "%3F_s%3Dweb-other&_t=" + System.currentTimeMillis()));
                     MainActivity.this.startActivity(intent);
-                }else {
+                } else {
                     Toast.makeText(this, "你还未安装支付宝", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(alipay_person_qr.toLowerCase()));
                     MainActivity.this.startActivity(intent);

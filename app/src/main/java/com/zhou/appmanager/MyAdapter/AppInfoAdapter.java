@@ -55,7 +55,11 @@ public class AppInfoAdapter extends BaseAdapter {
             holder.appName = convertView.findViewById(R.id.appName);
             holder.packageName = convertView.findViewById(R.id.packageName);
             holder.appPermission = convertView.findViewById(R.id.appPermission);
+            holder.apkSize = convertView.findViewById(R.id.apkSize);
+            holder.allSize = convertView.findViewById(R.id.allSize);
             holder.appSize = convertView.findViewById(R.id.appSize);
+            holder.dataSize = convertView.findViewById(R.id.dataSize);
+            holder.cacheSize = convertView.findViewById(R.id.cacheSize);
 
             //打标签
             convertView.setTag(holder);
@@ -72,11 +76,31 @@ public class AppInfoAdapter extends BaseAdapter {
         String appSize;
         File file = new File(appInfo.getApplicationInfo().sourceDir);
         if (file.length() / 1000 > 1024) {
-            appSize = String.format("%.2f", file.length() / 1048576.0)+"MB";
+            appSize = String.format("%.1f", file.length() / 1048576.0)+"MB";
         } else {
             appSize=file.length()/1024+"KB";
         }
-        holder.appSize.setText("大小:"+appSize);
+        holder.apkSize.setText("apk大小:"+appSize);
+        if (appInfo.getAllSize() /1000>1000) {
+            holder.allSize.setText("总计:"+String.format("%.1f",appInfo.getAllSize()/1000000.0)+"MB");
+        } else {
+            holder.allSize.setText("总计:"+String.format("%.1f",appInfo.getAllSize()/1000.0)+"KB");
+        }
+        if (appInfo.getAppSize() /1000>1000) {
+            holder.appSize.setText("应用:"+String.format("%.1f",appInfo.getAppSize()/1000000.0)+"MB");
+        } else {
+            holder.appSize.setText("应用:"+String.format("%.1f",appInfo.getAppSize()/1000.0)+"KB");
+        }
+        if (appInfo.getDataSize() /1000>1000) {
+            holder.dataSize.setText("数据:"+String.format("%.1f",appInfo.getDataSize()/1000000.0)+"MB");
+        } else {
+            holder.dataSize.setText("数据:"+String.format("%.1f",appInfo.getDataSize()/1000.0)+"KB");
+        }
+        if (appInfo.getCacheSize() /1000>1000) {
+            holder.cacheSize.setText("缓存:"+String.format("%.1f",appInfo.getCacheSize()/1000000.0)+"MB");
+        } else {
+            holder.cacheSize.setText("缓存:"+String.format("%.1f",appInfo.getCacheSize()/1000.0)+"KB");
+        }
 
         return convertView;
     }
@@ -85,6 +109,10 @@ public class AppInfoAdapter extends BaseAdapter {
         TextView appName;
         TextView packageName;
         TextView appPermission;
+        TextView apkSize;
+        TextView allSize;
         TextView appSize;
+        TextView dataSize;
+        TextView cacheSize;
     }
 }
