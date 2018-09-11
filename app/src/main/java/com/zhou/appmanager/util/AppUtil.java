@@ -62,7 +62,7 @@ public class AppUtil {
 
             if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {// 非系统应用
                 userApp.add(appInfo);
-            } else {
+            } else {  // 系统应用
                 systemApp.add(appInfo);
             }
         }

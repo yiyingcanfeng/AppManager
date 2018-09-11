@@ -8,21 +8,20 @@ import android.os.Parcelable;
 import java.util.Arrays;
 
 public class AppInfo implements Parcelable{
-    private String appName;
-    private String appNamePinyin;
+    private String appName; //应用名
+    private String appNamePinyin; //应用拼音名称
 
-
-    private String packageName;
-    private Drawable appIcon;
-    private String[] permissionInfos;
+    private String packageName; //应用的包名
+    private Drawable appIcon; // 应用的图标
+    private String[] permissionInfos; //应用的权限信息
     private ApplicationInfo applicationInfo;
 
 
-    private String apkSize;
-    private long allSize;
-    private long appSize;
-    private long dataSize;
-    private long cacheSize;
+    private String apkSize; //apk大小
+    private long allSize; //总大小
+    private long appSize; //app大小
+    private long dataSize; //数据大小
+    private long cacheSize; //缓存大小
 
     public AppInfo() {
     }

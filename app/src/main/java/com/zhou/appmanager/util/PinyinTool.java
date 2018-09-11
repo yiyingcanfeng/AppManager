@@ -6,11 +6,6 @@ import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
 import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 
-/**
- * 汉字转化为拼音的工具类
- * @author liuyazhuang
- *
- */
 public class PinyinTool {
     public static String getPinyinString(String ChineseLanguage){
         char[] cl_chars = ChineseLanguage.trim().toCharArray();

@@ -12,22 +12,22 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildToolsVersion '27.0.3'
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.github.bumptech.glide:glide:3.7.0'
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support.constraint:constraint-layout:1.1.2'
     // https://mvnrepository.com/artifact/com.belerweb/pinyin4j
-    implementation group: 'com.belerweb', name: 'pinyin4j', version: '2.5.1'
+    implementation 'com.belerweb:pinyin4j:2.5.1'
     // https://mvnrepository.com/artifact/com.ibm.icu/icu4j
-//    implementation group: 'com.ibm.icu', name: 'icu4j', version: '61.1'
-
+    //    implementation group: 'com.ibm.icu', name: 'icu4j', version: '61.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

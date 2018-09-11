@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(MainActivity.this, "请授予本应用允许访问使用记录的权限", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "请授予本应用允许访问使用记录的权限,否则无法统计app的数据、缓存大小等信息", Toast.LENGTH_LONG).show();
                     }
                 });
                 startActivityForResult(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY), 1);
@@ -161,8 +161,6 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-
-
                         AppUtil.getSize(MainActivity.this,systemAppInfos);
                         AppUtil.getSize(MainActivity.this,userAppInfos);
                         runOnUiThread(new Runnable() {
@@ -177,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+
     //创建并初始化OptionsMenu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -190,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
         //标题栏搜索框功能实现
         MenuItem searchItem = menu.findItem(R.id.action_search);
         mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-
         mSearchView.setQueryHint("请输入要搜索的应用名称");//设置输入框提示语
         mSearchView.setIconified(true);//设置searchView是否处于展开状态 false:展开
         //mSearchView.setIconifiedByDefault(false);
