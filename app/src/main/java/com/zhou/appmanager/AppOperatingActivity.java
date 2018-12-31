@@ -142,7 +142,7 @@ public class AppOperatingActivity extends AppCompatActivity {
 
                         File file = new File(appInfo.getApplicationInfo().sourceDir);
                         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-                        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputPath + appInfo.getAppName() + ".apk"));
+                        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputPath + appInfo.getAppName() + "_" + appInfo.getVersionName() + ".apk"));
                         byte[] bytes = new byte[1024];
                         int len;
                         while ((len = bis.read(bytes)) > 0) {
@@ -159,7 +159,7 @@ public class AppOperatingActivity extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {//在主线程执行
-                                Toast.makeText(AppOperatingActivity.this, "文件已保存至:\n" + outputPath + appInfo.getAppName() + ".apk  \n用时:" + String.format("%.1f", usedTime) + "s  速度:" + String.format("%.1f", speed) + "MB/s", Toast.LENGTH_LONG).show();
+                                Toast.makeText(AppOperatingActivity.this, "文件已保存至:\n" + outputPath + appInfo.getAppName() + "_" + appInfo.getVersionName() + ".apk  \n用时:" + String.format("%.1f", usedTime) + "s  速度:" + String.format("%.1f", speed) + "MB/s", Toast.LENGTH_LONG).show();
                             }
                         });
                     } catch (FileNotFoundException e) {
@@ -187,7 +187,7 @@ public class AppOperatingActivity extends AppCompatActivity {
                 try {
                     File file = new File(appInfo.getApplicationInfo().sourceDir);//安装包目录文件名都是base.apk
                     BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
-                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk")));
+                    BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(getExternalCacheDir(), appInfo.getAppName() + "_" + appInfo.getVersionName() + ".apk")));
                     byte[] bytes = new byte[1024];
                     int len;
                     while ((len = bis.read(bytes)) > 0) {
@@ -204,9 +204,9 @@ public class AppOperatingActivity extends AppCompatActivity {
 
                     Uri uri;
                     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
-                        uri = FileProvider.getUriForFile(AppOperatingActivity.this, "com.zhou.appmanager.fileprovider", new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
+                        uri = FileProvider.getUriForFile(AppOperatingActivity.this, "com.zhou.appmanager.fileprovider", new File(getExternalCacheDir(), appInfo.getAppName() + "_" + appInfo.getVersionName() + ".apk"));
                     } else {
-                        uri = Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
+                        uri = Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + "_" + appInfo.getVersionName() + ".apk"));
                     }
                     //uri= Uri.fromFile(new File(getExternalCacheDir(), appInfo.getAppName() + ".apk"));
 
