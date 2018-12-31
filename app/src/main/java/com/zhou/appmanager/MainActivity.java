@@ -1,6 +1,5 @@
 package com.zhou.appmanager;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     List<AppInfo> systemAppInfosOld;
     private MenuItem firstMenuItem;
     private SearchView mSearchView;
+    private MenuItem searchItem;
 
     private int sortByName = 1;
     private int sortByPermissions = 1;
@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     appInfoAdapter = new AppInfoAdapter(userAppInfos, MainActivity.this);
 
                     ll_loading.setVisibility(View.GONE);
+                    searchItem.setVisible(true);
                     listView.setAdapter(appInfoAdapter);
 
                     //给listView设置item点击监听
@@ -187,10 +188,11 @@ public class MainActivity extends AppCompatActivity {
         firstMenuItem = menu.findItem(R.id.showApp);
 
         //标题栏搜索框功能实现
-        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchItem = menu.findItem(R.id.action_search);
         mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         mSearchView.setQueryHint("请输入要搜索的应用名称");//设置输入框提示语
         mSearchView.setIconified(true);//设置searchView是否处于展开状态 false:展开
+        searchItem.setVisible(false);
         //mSearchView.setIconifiedByDefault(false);
         //mSearchView.onActionViewExpanded();
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
