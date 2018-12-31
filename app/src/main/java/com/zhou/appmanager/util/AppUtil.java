@@ -6,19 +6,15 @@ import android.app.AppOpsManager;
 import android.app.usage.StorageStats;
 import android.app.usage.StorageStatsManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
-import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 import android.widget.Toast;
 
-import com.zhou.appmanager.MainActivity;
 import com.zhou.appmanager.model.AppInfo;
 
 import java.io.File;
@@ -45,12 +41,13 @@ public class AppUtil {
         for (PackageInfo packageInfo : packages) {
             // 判断系统/非系统应用
             AppInfo appInfo = new AppInfo();
-            appInfo.setAppName(packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString());
-            appInfo.setAppNamePinyin(PinyinTool.getPinyinString(packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString()));
-            appInfo.setPackageName(packageInfo.packageName);
-            appInfo.setAppIcon(packageInfo.applicationInfo.loadIcon(context.getPackageManager()));
-            appInfo.setApplicationInfo(packageInfo.applicationInfo);
             try {
+                appInfo.setAppName(packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString());
+                appInfo.setAppNamePinyin(PinyinTool.getPinyinString(packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString()));
+                appInfo.setPackageName(packageInfo.packageName);
+                appInfo.setVersionName(packageInfo.versionName);
+                appInfo.setAppIcon(packageInfo.applicationInfo.loadIcon(context.getPackageManager()));
+                appInfo.setApplicationInfo(packageInfo.applicationInfo);
                 String[] permissions = pm.getPackageInfo(appInfo.getPackageName(), PackageManager.GET_PERMISSIONS).requestedPermissions;
                 if (permissions == null) {
                     permissions = new String[]{};
@@ -76,7 +73,7 @@ public class AppUtil {
         }
     }
 
-    //获取大小
+    //获取大小,需要有访问使用记录的权限
     public static void getSize(Context context, List<AppInfo> appInfos) {
         try {
             //仅在8.0及以上才执行
@@ -89,15 +86,18 @@ public class AppUtil {
                     AppInfo appInfo = appInfos.get(i);
                     for (StorageVolume storageVolume : storageVolumes) {
                         String uuidStr = storageVolume.getUuid();
-                        if (storageVolume.getDescription(context).equals("内部存储")) {
+                        String description = storageVolume.getDescription(context);
+                        //Log.e("description:", "description:"+description);
+                        if (description.equals("内部存储")) {
                             UUID uuid = uuidStr == null ? StorageManager.UUID_DEFAULT : UUID.fromString(uuidStr);
                             int uid = AppUtil.getAppUid(context, appInfo.getPackageName());
                             StorageStats storageStats = storageStatsManager.queryStatsForUid(uuid, uid);
+                            //总大小=应用大小+数据大小
                             long allSize = storageStats.getAppBytes() + storageStats.getDataBytes();
                             appInfo.setAllSize(allSize);
-                            appInfo.setAppSize(storageStats.getAppBytes());
-                            appInfo.setDataSize(storageStats.getDataBytes());
-                            appInfo.setCacheSize(storageStats.getCacheBytes());
+                            appInfo.setAppSize(storageStats.getAppBytes());//应用大小
+                            appInfo.setDataSize(storageStats.getDataBytes());//数据大小
+                            appInfo.setCacheSize(storageStats.getCacheBytes());//缓存大小
                         }
                     }
                     appInfos.set(i, appInfo);

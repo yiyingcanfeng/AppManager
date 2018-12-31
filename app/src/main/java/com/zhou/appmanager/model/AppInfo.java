@@ -12,6 +12,7 @@ public class AppInfo implements Parcelable{
     private String appNamePinyin; //应用拼音名称
 
     private String packageName; //应用的包名
+    private String versionName; //应用的版本名称
     private Drawable appIcon; // 应用的图标
     private String[] permissionInfos; //应用的权限信息
     private ApplicationInfo applicationInfo;
@@ -29,6 +30,7 @@ public class AppInfo implements Parcelable{
     protected AppInfo(Parcel in) {
         appName = in.readString();
         packageName = in.readString();
+        versionName = in.readString();
         //appIcon = in.readParcelable(Bitmap.class.getClassLoader());
         permissionInfos = in.createStringArray();
         applicationInfo = in.readParcelable(ApplicationInfo.class.getClassLoader());
@@ -55,6 +57,7 @@ public class AppInfo implements Parcelable{
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(appName);
         dest.writeString(packageName);
+        dest.writeString(versionName);
         //dest.writeParcelable(appIcon,flags);
         dest.writeStringArray(permissionInfos);
         dest.writeParcelable(applicationInfo,flags);
@@ -66,15 +69,24 @@ public class AppInfo implements Parcelable{
                 "appName='" + appName + '\'' +
                 ", appNamePinyin='" + appNamePinyin + '\'' +
                 ", packageName='" + packageName + '\'' +
+                ", versionName='" + versionName + '\'' +
                 ", appIcon=" + appIcon +
                 ", permissionInfos=" + Arrays.toString(permissionInfos) +
                 ", applicationInfo=" + applicationInfo +
                 ", apkSize='" + apkSize + '\'' +
-                ", allSize='" + allSize + '\'' +
-                ", appSize='" + appSize + '\'' +
-                ", dataSize='" + dataSize + '\'' +
-                ", cacheSize='" + cacheSize + '\'' +
+                ", allSize=" + allSize +
+                ", appSize=" + appSize +
+                ", dataSize=" + dataSize +
+                ", cacheSize=" + cacheSize +
                 '}';
+    }
+
+    public String getVersionName() {
+        return versionName;
+    }
+
+    public void setVersionName(String versionName) {
+        this.versionName = versionName;
     }
 
     public String getApkSize() {
